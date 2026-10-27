@@ -1,0 +1,4 @@
+{
+  "default": "main",
+  "main": { "ws": "wss://boaster-lapdog-jelly.ngrok-free.dev", "panel": "" }
+}
