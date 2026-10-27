@@ -30,7 +30,7 @@ pre{background:#0008;color:#d6ffe9;border:1px solid var(--line);border-radius:10
 <div class="r"><div><label>Name</label><input id="name" value="my-luma-node"></div><div><label>Docker image</label><input id="img" value="lumanet/rippled:main"></div></div>
 <div class="r"><div><label>Public WebSocket port</label><input id="wsp" value="6006"></div><div><label>RPC port</label><input id="rpcp" value="5006"></div><div><label>Peer port</label><input id="pp" value="51235"></div></div>
 <label>Fee (drops) / Reserve (drops)</label><div class="r"><input id="fee" value="1"><input id="res" value="100000"></div></div>
-<div class="c"><h2>4. Run it</h2><button onclick="gen()">Generate setup command</button>
+<div class="c"><h2>4. Run it</h2><label style="display:flex;gap:.5rem;align-items:center;color:var(--tx)"><input type="checkbox" id="cl" checked style="width:auto"> Close any previously running LUMA nodes on this computer first</label><button onclick="gen()">Generate setup command</button>
 <div id="out" style="display:none"><p class="s" style="margin:.8rem 0 .3rem">Paste this into a terminal (Mac, Linux, or WSL). It writes the config and starts the node in Docker:</p>
 <pre id="cmd"></pre><div class="r" style="margin-top:.6rem"><button onclick="cp()">Copy command</button><button class="g" onclick="dl()">Download as .command / .sh</button></div>
 <p class="s">First time only, load the image the operator sent you: <code>docker load &lt; luma-node-image.tar</code>. Check progress with <code>docker logs -f NAME</code>. When it reports <b>full</b>, the node is synced; your WebSocket is <code>ws://localhost:PORT</code>.</p></div></div>
@@ -41,7 +41,7 @@ function ports(){const n=NETS[$('#net').value];$('#wsp').value=6006+n.off;$('#rp
 $('#net').onchange=ports;
 async function fetchNet(){const m=$('#fm');let b=$('#op').value.trim().replace(/\/$/,'');if(!b)return m.textContent='Enter the operator address first.';try{const r=await fetch(b+'/api/public/network',{headers:{'ngrok-skip-browser-warning':'1'}});const j=await r.json();if(!j.ok&&j.error)throw new Error(j.error);
 $('#net').value=j.profile==='test'?'test':'main';if(j.peerPort)$('#pp').value=j.peerPort;if(j.host)$('#peer').value=j.host+' '+j.peerPort;if(j.validators)$('#vl').value=j.validators;if(j.feeDrops)$('#fee').value=j.feeDrops;if(j.reserveDrops)$('#res').value=j.reserveDrops;if(j.image)$('#img').value=j.image;m.textContent='Filled in from '+(j.label||'the operator')+'.'}catch(e){m.textContent='Could not read it ('+e.message+'). Fill the fields by hand.'}}
-function files(){const n=NETS[$('#net').value],hist=$('#role').value==='history',nm=$('#name').value.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'luma-node',peer=$('#peer').value.trim(),
+function files(){const n=NETS[$('#net').value],hist=$('#role').value==='history',nm=$('#name').value.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'node',peer=$('#peer').value.trim(),
 cfg=`[server]
 port_rpc_admin_local
 port_rpc_public
@@ -102,7 +102,7 @@ ${hist?'full':'256'}
 [validators_file]
 /config/validators.txt
 ${peer?'\n[ips_fixed]\n'+peer+'\n':''}`;
-return{nm,cfg,vl:$('#vl').value.trim()+'\n'}}
+return{nm:'luma-node-'+nm.replace(/^luma-node-/,''),cfg,vl:$('#vl').value.trim()+'\n'}}
 function gen(){const f=files(),im=$('#img').value.trim(),w=+$('#wsp').value||6006,r=+$('#rpcp').value||5006,p=+$('#pp').value||51235;
 if(!f.vl.trim()||/^\s*$/.test(f.vl)){alert('Paste the validator list (validators.txt) from the operator first.');return}
 if(!$('#peer').value.trim()){alert('Enter the operator peer address first (host and port).');return}
@@ -115,7 +115,7 @@ cat > rippled.cfg <<'CFG_EOF'
 ${f.cfg}CFG_EOF
 cat > validators.txt <<'VAL_EOF'
 ${f.vl}VAL_EOF
-docker rm -f ${f.nm} 2>/dev/null || true
+${$('#cl').checked?'# close previously running LUMA nodes first\nfor c in $(docker ps -aq --filter "name=luma-node-"); do docker rm -f "$c" >/dev/null 2>&1 || true; done\n':''}docker rm -f ${f.nm} 2>/dev/null || true
 docker run -d --name ${f.nm} --restart unless-stopped -e LUMA_JOIN=1 \\
   -p ${p}:51235 -p ${w}:6006 -p ${r}:5006 \\
   -v "$PWD/rippled.cfg:/config/rippled.cfg:ro" -v "$PWD/validators.txt:/config/validators.txt:ro" \\
