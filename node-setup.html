@@ -1,0 +1,128 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LUMA Node Setup</title>
+<style>
+:root{--bg:#050607;--card:#0d1210;--line:#1d2a24;--tx:#e8f3ee;--mut:#8aa097;--ok:#5af0a0;--bad:#ff6b6b}
+@media(prefers-color-scheme:light){:root{--bg:#f4f7f5;--card:#fff;--line:#d5e0da;--tx:#10201a;--mut:#5b6f66;--ok:#0a9d5c;--bad:#c62828}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,sans-serif;padding:1rem}
+main{max-width:760px;margin:0 auto}h1{font-size:1.5rem;margin:.4rem 0}h2{font-size:1rem;margin:0 0 .6rem;color:var(--ok)}
+.c{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1rem;margin:.8rem 0}
+label{display:block;font-size:.8rem;color:var(--mut);margin:.7rem 0 .2rem}
+input,select,textarea{width:100%;background:transparent;color:var(--tx);border:1px solid var(--line);border-radius:9px;padding:.55rem .7rem;font:inherit}
+textarea{font-family:ui-monospace,monospace;font-size:.8rem;min-height:7rem}
+.r{display:flex;gap:.6rem;flex-wrap:wrap}.r>*{flex:1;min-width:140px}
+button{background:var(--ok);color:#021;border:0;border-radius:9px;padding:.6rem 1rem;font:inherit;font-weight:600;cursor:pointer}
+button.g{background:transparent;color:var(--tx);border:1px solid var(--line)}
+pre{background:#0008;color:#d6ffe9;border:1px solid var(--line);border-radius:10px;padding:.8rem;overflow:auto;font-size:.75rem;max-height:18rem;white-space:pre-wrap;word-break:break-all}
+.s{color:var(--mut);font-size:.85rem}.w{border-left:3px solid #f5c542;padding:.4rem .8rem;margin:.6rem 0;color:var(--mut);font-size:.85rem}
+</style></head><body><main>
+<h1>LUMA Node Setup</h1>
+<p class="s">Run a supporting node for the network: it syncs and relays the ledger, serves its own RPC and WebSocket, and does <b>not</b> validate. Fill this in, then copy the one command into a terminal.</p>
+<div class="c"><h2>1. Network</h2>
+<div class="r"><div><label>Network</label><select id="net"><option value="main">LUMA Mainnet (ID 4242)</option><option value="test">LUMA Testnet (ID 4243)</option></select></div>
+<div><label>Node type</label><select id="role"><option value="api">Supporting node (recent history, light)</option><option value="history">History node (full ledger history, large disk)</option></select></div></div>
+<label>Operator address (optional: fills the rest in for you)</label>
+<div class="r"><input id="op" placeholder="https://operator-panel-address"><button class="g" onclick="fetchNet()" style="flex:0 0 auto">Fetch</button></div>
+<div id="fm" class="s"></div></div>
+<div class="c"><h2>2. Connect to the network</h2>
+<label>Operator peer address (host and peer port, for example node.example.com 51235)</label><input id="peer" placeholder="host 51235">
+<label>Validator list (validators.txt from the operator)</label><textarea id="vl" placeholder="[validators]&#10;n9...&#10;n9..."></textarea>
+<div class="w">The node can only join if the operator's peer port is reachable from your machine and you have the operator's validator list and node image. Ask the operator for all three.</div></div>
+<div class="c"><h2>3. Your node</h2>
+<div class="r"><div><label>Name</label><input id="name" value="my-luma-node"></div><div><label>Docker image</label><input id="img" value="lumanet/rippled:main"></div></div>
+<div class="r"><div><label>Public WebSocket port</label><input id="wsp" value="6006"></div><div><label>RPC port</label><input id="rpcp" value="5006"></div><div><label>Peer port</label><input id="pp" value="51235"></div></div>
+<label>Fee (drops) / Reserve (drops)</label><div class="r"><input id="fee" value="1"><input id="res" value="100000"></div></div>
+<div class="c"><h2>4. Run it</h2><button onclick="gen()">Generate setup command</button>
+<div id="out" style="display:none"><p class="s" style="margin:.8rem 0 .3rem">Paste this into a terminal (Mac, Linux, or WSL). It writes the config and starts the node in Docker:</p>
+<pre id="cmd"></pre><div class="r" style="margin-top:.6rem"><button onclick="cp()">Copy command</button><button class="g" onclick="dl()">Download as .command / .sh</button></div>
+<p class="s">First time only, load the image the operator sent you: <code>docker load &lt; luma-node-image.tar</code>. Check progress with <code>docker logs -f NAME</code>. When it reports <b>full</b>, the node is synced; your WebSocket is <code>ws://localhost:PORT</code>.</p></div></div>
+</main><script>
+const $=s=>document.querySelector(s);
+const NETS={main:{id:4242,off:0,img:'lumanet/rippled:main'},test:{id:4243,off:100,img:'lumanet/rippled:test'}};
+function ports(){const n=NETS[$('#net').value];$('#wsp').value=6006+n.off;$('#rpcp').value=5006+n.off;$('#pp').value=51235+n.off;$('#img').value=n.img}
+$('#net').onchange=ports;
+async function fetchNet(){const m=$('#fm');let b=$('#op').value.trim().replace(/\/$/,'');if(!b)return m.textContent='Enter the operator address first.';try{const r=await fetch(b+'/api/public/network',{headers:{'ngrok-skip-browser-warning':'1'}});const j=await r.json();if(!j.ok&&j.error)throw new Error(j.error);
+$('#net').value=j.profile==='test'?'test':'main';if(j.peerPort)$('#pp').value=j.peerPort;if(j.host)$('#peer').value=j.host+' '+j.peerPort;if(j.validators)$('#vl').value=j.validators;if(j.feeDrops)$('#fee').value=j.feeDrops;if(j.reserveDrops)$('#res').value=j.reserveDrops;if(j.image)$('#img').value=j.image;m.textContent='Filled in from '+(j.label||'the operator')+'.'}catch(e){m.textContent='Could not read it ('+e.message+'). Fill the fields by hand.'}}
+function files(){const n=NETS[$('#net').value],hist=$('#role').value==='history',nm=$('#name').value.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'luma-node',peer=$('#peer').value.trim(),
+cfg=`[server]
+port_rpc_admin_local
+port_rpc_public
+port_peer
+port_ws_public
+
+[port_rpc_admin_local]
+port = 5005
+ip = 127.0.0.1
+admin = 127.0.0.1
+protocol = http
+
+[port_rpc_public]
+port = 5006
+ip = 0.0.0.0
+protocol = http
+
+[port_ws_public]
+port = 6006
+ip = 0.0.0.0
+protocol = ws
+
+[port_peer]
+port = 51235
+ip = 0.0.0.0
+protocol = peer
+
+[node_size]
+${hist?'huge':'medium'}
+
+[node_db]
+type=NuDB
+path=/var/lib/rippled/db/nudb
+${hist?'':'online_delete=2000\nadvisory_delete=0\n'}
+[database_path]
+/var/lib/rippled/db
+
+[debug_logfile]
+/var/log/rippled/debug.log
+
+[network_id]
+${n.id}
+
+[voting]
+reference_fee = ${+$('#fee').value||1}
+account_reserve = ${+$('#res').value||100000}
+owner_reserve = ${Math.round((+$('#res').value||100000)/5)}
+
+[ledger_history]
+${hist?'full':'256'}
+
+[fetch_depth]
+${hist?'full':'256'}
+
+[peer_private]
+0
+
+[validators_file]
+/config/validators.txt
+${peer?'\n[ips_fixed]\n'+peer+'\n':''}`;
+return{nm,cfg,vl:$('#vl').value.trim()+'\n'}}
+function gen(){const f=files(),im=$('#img').value.trim(),w=+$('#wsp').value||6006,r=+$('#rpcp').value||5006,p=+$('#pp').value||51235;
+if(!f.vl.trim()||/^\s*$/.test(f.vl)){alert('Paste the validator list (validators.txt) from the operator first.');return}
+if(!$('#peer').value.trim()){alert('Enter the operator peer address first (host and port).');return}
+const sh=`#!/usr/bin/env bash
+set -e
+command -v docker >/dev/null || { echo "Install Docker first: https://docker.com"; exit 1; }
+docker image inspect "${im}" >/dev/null 2>&1 || { echo "Load the node image first:  docker load < luma-node-image.tar"; exit 1; }
+mkdir -p "$HOME/${f.nm}" && cd "$HOME/${f.nm}"
+cat > rippled.cfg <<'CFG_EOF'
+${f.cfg}CFG_EOF
+cat > validators.txt <<'VAL_EOF'
+${f.vl}VAL_EOF
+docker rm -f ${f.nm} 2>/dev/null || true
+docker run -d --name ${f.nm} --restart unless-stopped -e LUMA_JOIN=1 \\
+  -p ${p}:51235 -p ${w}:6006 -p ${r}:5006 \\
+  -v "$PWD/rippled.cfg:/config/rippled.cfg:ro" -v "$PWD/validators.txt:/config/validators.txt:ro" \\
+  -v ${f.nm}-data:/var/lib/rippled "${im}"
+echo "Started. Watch it:  docker logs -f ${f.nm}"
+echo "When it says full, connect to ws://localhost:${w}"
+`;$('#cmd').textContent=sh;$('#out').style.display='block';window._sh=sh;window._nm=f.nm}
+function cp(){navigator.clipboard.writeText(window._sh).then(()=>alert('Copied'),()=>{const r=document.createRange();r.selectNode($('#cmd'));getSelection().removeAllRanges();getSelection().addRange(r)})}
+function dl(){const b=new Blob([window._sh],{type:'text/plain'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='start-'+window._nm+'.command';a.click()}
+</script></body></html>
