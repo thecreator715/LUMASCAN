@@ -18,7 +18,7 @@ pre{background:#0008;color:#d6ffe9;border:1px solid var(--line);border-radius:10
 <p class="s">Run a supporting node for the network: it syncs and relays the ledger, serves its own RPC and WebSocket, and does <b>not</b> validate. Fill this in, then copy the one command into a terminal.</p>
 <div class="c"><h2>1. Network</h2>
 <div class="r"><div><label>Network</label><select id="net"><option value="main">LUMA Mainnet (ID 4242)</option><option value="test">LUMA Testnet (ID 4243)</option></select></div>
-<div><label>Node type</label><select id="role"><option value="api">Supporting node (recent history, light)</option><option value="history">History node (full ledger history, large disk)</option></select></div></div>
+<div><label>Node type</label><select id="role" disabled><option value="api">Supporting node (partial, light)</option></select></div></div>
 <label>Operator address (optional: fills the rest in for you)</label>
 <div class="r"><input id="op" placeholder="https://operator-panel-address"><button class="g" onclick="fetchNet()" style="flex:0 0 auto">Fetch</button></div>
 <div id="fm" class="s"></div></div>
