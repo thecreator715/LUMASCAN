@@ -56,7 +56,7 @@ pre{font:.74rem/1.5 var(--mono);color:#b7f5d4;white-space:pre-wrap;word-break:br
  <header><i class="mk"></i><div class="brand">LUMA<small>SCAN · explorer</small></div><span class="grow"></span><div class="nsw" id="nsw"></div><div class="pill" id="conn" onclick="sheetConnect()"><i class="dot" id="cd"></i><span id="ct">connect</span></div></header>
  <div class="hint" id="hint">swipe ← → between views</div>
  <div id="pager"><div id="track">
-  <section class="page" id="p0"></section><section class="page" id="p1"></section><section class="page" id="p2"></section><section class="page" id="p3"></section><section class="page" id="p4"></section><section class="page" id="p5"></section><section class="page" id="p6"></section><section class="page" id="p7"></section><section class="page" id="p8"></section><section class="page" id="p9"></section><section class="page" id="p10"></section><section class="page" id="p11"></section><section class="page" id="p12"></section>
+  <section class="page" id="p0"></section><section class="page" id="p1"></section><section class="page" id="p2"></section><section class="page" id="p3"></section><section class="page" id="p4"></section><section class="page" id="p5"></section><section class="page" id="p6"></section><section class="page" id="p7"></section><section class="page" id="p8"></section><section class="page" id="p9"></section><section class="page" id="p10"></section><section class="page" id="p11"></section><section class="page" id="p12"></section><section class="page" id="p13"></section>
  </div></div>
  <dock id="dock"></dock>
 </div>
@@ -70,10 +70,10 @@ const fmt=(n,d=0)=>n==null||isNaN(n)?'–':Number(n).toLocaleString(undefined,{m
 const store={get:k=>{try{return localStorage.getItem(k)}catch{return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch{}}};
 /* ===== state: everything below comes from the connected node. Nothing is generated. ===== */
 const fixWs=u=>String(u||'').replace(/^(wss?:\/\/[^\/:]+):\d+(:\d+)/,'$1$2');const S={url:fixWs(store.get('luma.scan.url'))||'ws://127.0.0.1:6006',ws:null,ok:false,info:null,fee:null,ledgers:[],txs:[],types:{},closeTimes:[],tps:[],total:null,err:'',tab:0,acct:null,peers:null,t0:0,sinceTx:0,txPerLedger:[],valAge:null,lastClose:0,accts:{},fees:0,fail:0,seen:0,big:[]};
-const PAGES=[['Pulse','M3 12h4l3-8 4 16 3-8h4'],['Ledgers','M4 6h16M4 12h16M4 18h16'],['Activity','M12 3v18M3 12h18M6 6l12 12'],['Pools','M12 3s6.5 6.6 6.5 11.2a6.5 6.5 0 0 1-13 0C5.5 9.6 12 3 12 3z'],['Search','M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c0-4 4-6 8-6s8 2 8 6'],['Health','M12 21s-8-5-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 6-8 11-8 11z'],['Log','M5 4h14M5 9h14M5 14h9M5 19h6'],['Tokens','M12 3a9 9 0 100 18 9 9 0 000-18zM9 12h6M12 9v6'],['Nodes','M4 5h16v5H4zM4 14h16v5H4zM7 7.5h.01M7 16.5h.01'],['Markets','M4 19V9M10 19V5M16 19v-7M22 19H2'],['Wallets','M3 7h16a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2zM3 7l2-3h12M16 13h.01'],['Bridge','M3 17h18M5 17V9a7 7 0 0114 0v8M9 17v-5M15 17v-5'],['NFTs','M4 4h16v16H4zM4 15l4-4 4 4 5-5 3 3M14 8a1.5 1.5 0 100-3 1.5 1.5 0 000 3z']];
+const PAGES=[['Pulse','M3 12h4l3-8 4 16 3-8h4'],['Ledgers','M4 6h16M4 12h16M4 18h16'],['Activity','M12 3v18M3 12h18M6 6l12 12'],['Pools','M12 3s6.5 6.6 6.5 11.2a6.5 6.5 0 0 1-13 0C5.5 9.6 12 3 12 3z'],['Search','M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c0-4 4-6 8-6s8 2 8 6'],['Health','M12 21s-8-5-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 6-8 11-8 11z'],['Log','M5 4h14M5 9h14M5 14h9M5 19h6'],['Tokens','M12 3a9 9 0 100 18 9 9 0 000-18zM9 12h6M12 9v6'],['Nodes','M4 5h16v5H4zM4 14h16v5H4zM7 7.5h.01M7 16.5h.01'],['Markets','M4 19V9M10 19V5M16 19v-7M22 19H2'],['Wallets','M3 7h16a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2zM3 7l2-3h12M16 13h.01'],['Bridge','M3 17h18M5 17V9a7 7 0 0114 0v8M9 17v-5M15 17v-5'],['NFTs','M4 4h16v16H4zM4 15l4-4 4 4 5-5 3 3M14 8a1.5 1.5 0 100-3 1.5 1.5 0 000 3z'],['Explore','M11 4a7 7 0 100 14 7 7 0 000-14zM21 21l-5-5']];
 $('#dock').innerHTML=PAGES.map(([n,p],i)=>`<button data-i="${i}"><svg viewBox="0 0 24 24"><path d="${p}"/></svg>${n}</button>`).join('');
 document.querySelectorAll('#dock button').forEach(b=>b.onclick=()=>go(+b.dataset.i));
-function go(i){S.tab=Math.max(0,Math.min(12,i));$('#track').style.transform=`translateX(${-S.tab*100}%)`;document.querySelectorAll('#dock button').forEach((b,n)=>b.classList.toggle('on',n===S.tab));$('#hint').style.opacity=0;paint()}
+function go(i){S.tab=Math.max(0,Math.min(PAGES.length-1,i));$('#track').style.transform=`translateX(${-S.tab*100}%)`;document.querySelectorAll('#dock button').forEach((b,n)=>b.classList.toggle('on',n===S.tab));$('#hint').style.opacity=0;paint()}
 /* swipe between pages (touch-pad style) */
 (()=>{let x0=null,y0=0,t=0;const el=$('#pager');el.addEventListener('pointerdown',e=>{x0=e.clientX;y0=e.clientY;t=Date.now()});el.addEventListener('pointerup',e=>{if(x0==null)return;const dx=e.clientX-x0,dy=e.clientY-y0;if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.6&&Date.now()-t<700)go(S.tab+(dx<0?1:-1));x0=null});addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(S.tab+1);if(e.key==='ArrowLeft')go(S.tab-1)})})();
 
@@ -280,7 +280,7 @@ function pBridge(){if(!S.brLoaded||Date.now()-S.brLoaded>15000)loadBridge();cons
  <div class="t"><div class="k">Lanes and fees</div>${lanes}</div>
  <div class="t"><div class="k">Vaults</div><div class="kv"><span>LUMA vault</span><b>${esc(b.lumaVault||'–')}</b></div><div class="kv"><span>XRPL vault</span><b>${esc(b.xrplVault||'–')}</b></div></div>
  <div class="t"><div class="k">Recent transfers</div>${rec}</div></div>`}
-const FN=[pPulse,pLedgers,pActivity,pPools,pAccounts,pHealth,pLog,pTokens,pNodes,pMarkets,pWallets,pBridge,pNFTs];
+const FN=[pPulse,pLedgers,pActivity,pPools,pAccounts,pHealth,pLog,pTokens,pNodes,pMarkets,pWallets,pBridge,pNFTs,()=>'<h2>Explore</h2>'];
 /* ===== Nodes: network monitor fed by the operator's read-only /api/public/status ===== */
 S.mon=null;S.monErr='';
 const panelUrl=()=>{const c=(window.LUMA_SCAN_CONFIG||{})[S.net]||{};return String(c.panel||store.get('luma.scan.panel.'+S.net)||'').replace(/\/$/,'')};
