@@ -376,7 +376,7 @@ const FN=[pPulse,pLedgers,pActivity,pPools,pAccounts,pHealth,pLog,pTokens,pNodes
 S.mon=null;S.monErr='';
 const panelUrl=()=>{const c=(window.LUMA_SCAN_CONFIG||{})[S.net]||{};return String(c.panel||store.get('luma.scan.panel.'+S.net)||'').replace(/\/$/,'')};
 async function loadMon(){const b=panelUrl();if(!b){S.mon=null;S.monErr='';return}try{const r=await fetch(b+'/api/public/status',{cache:'no-store'});const j=await r.json();if(!j.ok)throw new Error(j.error||'bad answer');S.mon=j;S.monErr=''}catch(e){S.monErr='Cannot reach the network feed ('+b+'). '+(e.message||e)}if(S.tab===8){const el=$('#p8');if(el){el.__h=null;paint()}}}
-setInterval(()=>{if(S.tab===8||!S.mon)loadMon()},5000);
+setInterval(()=>{if(document.hidden)return;if(S.tab===8||!S.mon)loadMon()},8000);
 function monSet(){const v=prompt('Operator address (the LUMA control panel, for example https://panel.example.com)',panelUrl());if(v===null)return;store.set('luma.scan.panel.'+S.net,v.trim());loadMon()}
 function pNodes(){const m=S.mon;if(!panelUrl())return`<div class="t"><div class="k">Network monitor</div><div class="sub" style="margin:.5rem 0">Connect the operator's feed to see every node (validators, API and history) and their health.</div><button onclick="monSet()">Set operator address</button></div>`;
  if(!m)return`<div class="t"><div class="k">Network monitor</div><div class="sub">${esc(S.monErr||'loading…')}</div><button onclick="monSet()">Change address</button></div>`;
