@@ -490,5 +490,6 @@ FN[13]=function(){
  return h};
 function sec_(t,b){return`<div class="t c12" style="margin-top:.8rem"><div class="k">${t}</div>${b}</div>`}
 
+X.h={wrap,sec,grid,tile,spark,bars,csv,dl,copy,toast,num,ago,lab,isW,rp};
 applyDensity();
 })();
