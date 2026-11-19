@@ -11,7 +11,7 @@ if ! up 5006 && ! up 5106; then
   chmod +x luma-auto.sh start-luma.sh lumactl 2>/dev/null
   bash ./luma-auto.sh main; bash ./luma-auto.sh test
 fi
-OLD=$(lsof -ti tcp:$PORT -sTCP:LISTEN 2>/dev/null); [ -n "$OLD" ] && kill $OLD 2>/dev/null
+for OLD in $(lsof -ti tcp:$PORT -sTCP:LISTEN 2>/dev/null); do ps -p "$OLD" -o command= 2>/dev/null | grep -qiE "docker|vpnkit|virtualization|colima|lima" || kill "$OLD" 2>/dev/null; done
 SCAN_PORT=$PORT node serve-admin.js &
 SV=$!; trap 'kill $SV 2>/dev/null' EXIT
 sleep 1
