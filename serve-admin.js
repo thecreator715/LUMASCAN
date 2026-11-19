@@ -1,7 +1,7 @@
 // LUMA Scan, admin edition: serves luma-scan.html on this machine with the LOCAL nodes and LOCAL control panels preset,
 // so the Nodes / network-monitor tab works with no setup. Plain Node, no packages. Listens on 127.0.0.1 only.
 const http = require('http'), fs = require('fs'), path = require('path');
-const PORT = +process.env.SCAN_PORT || 8095;
+const PORT = +process.env.SCAN_PORT || 8097;
 const CFG = { default: process.env.SCAN_NET || 'main',
   main: { ws: 'ws://127.0.0.1:6006', panel: 'http://127.0.0.1:8090' },
   test: { ws: 'ws://127.0.0.1:6106', panel: 'http://127.0.0.1:8091' } };
