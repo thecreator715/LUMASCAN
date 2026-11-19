@@ -5,7 +5,7 @@ const PORT = +process.env.SCAN_PORT || 8095;
 const CFG = { default: process.env.SCAN_NET || 'main',
   main: { ws: 'ws://127.0.0.1:6006', panel: 'http://127.0.0.1:8090' },
   test: { ws: 'ws://127.0.0.1:6106', panel: 'http://127.0.0.1:8091' } };
-const FILE = path.join(__dirname, 'luma-scan.html');
+const FILE = ['luma-scan.html', 'index.html'].map(n => path.join(__dirname, n)).find(f => fs.existsSync(f));
 http.createServer((req, res) => {
   if (!/^\/(index\.html)?(\?.*)?$/.test(req.url)) { res.writeHead(404); return res.end('not found'); }
   let h = fs.readFileSync(FILE, 'utf8');
